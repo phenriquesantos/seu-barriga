@@ -5,10 +5,13 @@ module.exports = (app) => {
 
   app.route('/accounts')
     .get(app.routes.account.findAll)
-    .post(app.routes.account.create)
+    .post(app.routes.account.create);
 
   app.route('/accounts/:id')
     .get(app.routes.account.findById)
     .delete(app.routes.account.removeById)
-    .put(app.routes.account.updateById)
+    .put(app.routes.account.updateById);
+
+  app.route('/auth/signin')
+    .post(app.routes.auth.signin)
 }

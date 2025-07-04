@@ -20,6 +20,7 @@ test('Deve inserir uma conta com sucesso', () => {
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('name', 'Conta do chapéu de palha');
       expect(res.body).toHaveProperty('user_id', user.id);
+      expect(res.body).not.toHaveProperty('password');
     });
 });
 
