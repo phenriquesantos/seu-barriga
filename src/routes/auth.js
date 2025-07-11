@@ -1,12 +1,13 @@
 const jwt = require('jwt-simple');
 const bcript = require('bcrypt');
 const ValidationError = require('../errors/ValidationError');
+const express = require('express');
 
 const secret = 'segredo';
 
 module.exports = (app) => {
-
-  const signin = (req, res, next) => {
+  const router = express.Router();
+  router.post('/signin', (req, res, next) => {
     const { email, password } = req.body;
     app.services.user.findOne({ email })
       .then((user) => {
@@ -24,8 +25,16 @@ module.exports = (app) => {
           throw new ValidationError('Email ou senha invalido');
         }
       }).catch(error => next(error));
-  }
+  });
 
-  return { signin };
+  router.post('/signup', (req, res, next) => {
+    return app.services.user.create(req.body)
+      .then((result) => {
+        return res.status(201).json(result[0]);
+      })
+      .catch(error => next(error))
+  });
+
+  return router;
 
 };
