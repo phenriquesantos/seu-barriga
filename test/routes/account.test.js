@@ -1,7 +1,9 @@
 const request = require('supertest');
 const app = require('../../src/app');
+const jwt = require('jwt-simple');
 
 const MAIN_ROUTE = '/accounts';
+const secret = 'segredo';
 let user;
 
 beforeAll(async () => {
@@ -11,10 +13,12 @@ beforeAll(async () => {
     password: '123456'
   });
   user = userRes[0];
+  user.token = jwt.encode(user, secret);
 });
 
 test('Deve inserir uma conta com sucesso', () => {
   return request(app).post(MAIN_ROUTE)
+    .set('authorization', `bearer ${user.token}`)
     .send({ user_id: user.id, name: 'Conta do chapéu de palha' })
     .then((res) => {
       expect(res.status).toBe(201);
@@ -26,6 +30,7 @@ test('Deve inserir uma conta com sucesso', () => {
 
 test('Não deve criar uma conta sem nome', () => {
   return request(app).post(MAIN_ROUTE)
+    .set('authorization', `bearer ${user.token}`)
     .send({ user_id: user.id })
     .then((res) => {
       expect(res.status).toBe(400);
@@ -33,21 +38,22 @@ test('Não deve criar uma conta sem nome', () => {
     });
 });
 
-test('Não deve inserir conta com nome duplicado para o mesmo usuario', () => {
+test.skip('Não deve inserir conta com nome duplicado para o mesmo usuario', () => {
 
 });
 
 test('Deve listar todas as contas', () => {
   return app.db('accounts')
     .insert({ name: 'Conta do luffy #01', user_id: user.id })
-    .then(() => request(app).get(MAIN_ROUTE))
-    .then((res) => {
+    .then(() => request(app).get(MAIN_ROUTE)
+      .set('authorization', `bearer ${user.token}`)
+    ).then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.length).toBeGreaterThan(0);
     });
 });
 
-test('Deve listar apenas as conta do usuario', () => {
+test.skip('Deve listar apenas as conta do usuario', () => {
 
 });
 
@@ -56,6 +62,7 @@ test('Deve retornar uma conta por id', async () => {
     .insert({ name: 'Conta do luffy #02', user_id: user.id }, ['id']);
 
   return request(app).get(`${MAIN_ROUTE}/${accountRes[0].id}`)
+    .set('authorization', `bearer ${user.token}`)
     .then((res) => {
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('name', 'Conta do luffy #02');
@@ -64,7 +71,7 @@ test('Deve retornar uma conta por id', async () => {
     });
 });
 
-test('Não de retornar uma conta de outro usuario', () => {
+test.skip('Não de retornar uma conta de outro usuario', () => {
 
 });
 
@@ -73,6 +80,7 @@ test('Deve atualizar uma conta por id', async () => {
     .insert({ name: 'Conta do luffy #03', user_id: user.id }, ['id']);
 
   return request(app).put(`${MAIN_ROUTE}/${accountRes[0].id}`)
+    .set('authorization', `bearer ${user.token}`)
     .send({ name: 'Conta do update' })
     .then((res) => {
       expect(res.status).toBe(200);
@@ -80,7 +88,7 @@ test('Deve atualizar uma conta por id', async () => {
     });
 });
 
-test('Não deve atualizar uma conta de outro usuario', () => {
+test.skip('Não deve atualizar uma conta de outro usuario', () => {
 
 });
 
@@ -88,6 +96,7 @@ test('Deve remover uma conta por id', async () => {
   const accountRes = await app.db('accounts')
     .insert({ name: 'Conta do luffy #03', user_id: user.id }, ['id']);
   return request(app).delete(`${MAIN_ROUTE}/${accountRes[0].id}`)
+    .set('authorization', `bearer ${user.token}`)
     .then((res) => {
       expect(res.status).toBe(204);
     });
