@@ -47,8 +47,16 @@ test('Não deve criar uma conta sem nome', () => {
     });
 });
 
-test.skip('Não deve inserir conta com nome duplicado para o mesmo usuario', () => {
-
+test('Não deve inserir conta com nome duplicado para o mesmo usuario', () => {
+  return app.db('accounts').insert({ name: 'Capitão Ussop', user_id: user.id })
+    .then(() => request(app).post(MAIN_ROUTE)
+      .set('authorization', `bearer ${user.token}`)
+      .send({ name: 'Capitão Ussop' })
+      .then((res) => {
+        expect(res.status).toBe(400);
+        expect(res.body.error).toBe('já existe uma conta cadastrada com esse nome');
+      })
+    );
 });
 
 test('Deve listar apenas as conta do usuario', () => {
@@ -60,7 +68,8 @@ test('Deve listar apenas as conta do usuario', () => {
     .then((res) => {
       expect(res.status).toBe(200);
       expect(res.body.length).toBe(1)
-    }));
+    })
+  );
 });
 
 test('Deve retornar uma conta por id', async () => {
