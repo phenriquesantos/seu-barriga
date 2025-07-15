@@ -5,8 +5,10 @@ const jwt = require('jwt-simple');
 const MAIN_ROUTE = '/v1/accounts';
 const secret = 'segredo';
 let user;
+let user2;
 
-beforeAll(async () => {
+beforeEach(async () => {
+  // Criando primeiro usuario para testes
   const userRes = await app.services.user.create({
     name: 'Monkey D. Luffy',
     email: `reidospiratas${Date.now()}@mail.com`,
@@ -14,12 +16,19 @@ beforeAll(async () => {
   });
   user = userRes[0];
   user.token = jwt.encode(user, secret);
+
+  const userRes2 = await await app.services.user.create({
+    name: 'Chopper',
+    email: `dr.chopper${Date.now()}@mail.com`,
+    password: 'algodãoDoce123'
+  });
+  user2 = userRes2[0];
 });
 
 test('Deve inserir uma conta com sucesso', () => {
   return request(app).post(MAIN_ROUTE)
     .set('authorization', `bearer ${user.token}`)
-    .send({ user_id: user.id, name: 'Conta do chapéu de palha' })
+    .send({ name: 'Conta do chapéu de palha' })
     .then((res) => {
       expect(res.status).toBe(201);
       expect(res.body).toHaveProperty('name', 'Conta do chapéu de palha');
@@ -31,7 +40,7 @@ test('Deve inserir uma conta com sucesso', () => {
 test('Não deve criar uma conta sem nome', () => {
   return request(app).post(MAIN_ROUTE)
     .set('authorization', `bearer ${user.token}`)
-    .send({ user_id: user.id })
+    .send({})
     .then((res) => {
       expect(res.status).toBe(400);
       expect(res.body.error).toBe('name é um atributo obrigatório');
@@ -42,19 +51,16 @@ test.skip('Não deve inserir conta com nome duplicado para o mesmo usuario', () 
 
 });
 
-test('Deve listar todas as contas', () => {
-  return app.db('accounts')
-    .insert({ name: 'Conta do luffy #01', user_id: user.id })
-    .then(() => request(app).get(MAIN_ROUTE)
-      .set('authorization', `bearer ${user.token}`)
-    ).then((res) => {
+test('Deve listar apenas as conta do usuario', () => {
+  app.db('accounts').insert([
+    { name: 'Nami', user_id: user.id },
+    { name: 'Robin', user_id: user2.id }
+  ]).then(() => request(app).get(MAIN_ROUTE)
+    .set('authorization', `bearer ${user.token}`)
+    .then((res) => {
       expect(res.status).toBe(200);
-      expect(res.body.length).toBeGreaterThan(0);
-    });
-});
-
-test.skip('Deve listar apenas as conta do usuario', () => {
-
+      expect(res.body.length).toBe(1)
+    }));
 });
 
 test('Deve retornar uma conta por id', async () => {

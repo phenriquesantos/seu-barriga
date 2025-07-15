@@ -5,7 +5,7 @@ module.exports = (app) => {
   const router = express.Router();
 
   router.post('/', (req, res, next) => {
-    return app.services.account.create(req.body)
+    return app.services.account.create({ ...req.body, user_id: req.user.id })
       .then((result) => {
         return res.status(201).json(result[0]);
       }).catch(error => next(error));
@@ -13,7 +13,7 @@ module.exports = (app) => {
 
 
   router.get('/', (req, res, next) => {
-    app.services.account.findAll()
+    app.services.account.findAll(req.user.id)
       .then((result) => {
         return res.status(200).json(result);
       }).catch(error => next(error))
