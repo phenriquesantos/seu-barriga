@@ -93,7 +93,8 @@ test('Não de retornar uma conta de outro usuario', () => {
       .then((res) => {
         expect(res.status).toBe(403);
         expect(res.body.error).toBe('Este recurso não pertence a este usuario');
-      }));
+      })
+    );
 });
 
 test('Deve atualizar uma conta por id', async () => {
@@ -109,8 +110,16 @@ test('Deve atualizar uma conta por id', async () => {
     });
 });
 
-test.skip('Não deve atualizar uma conta de outro usuario', () => {
-
+test('Não deve atualizar uma conta de outro usuario', () => {
+  return app.db('accounts').insert({ name: 'Sanji', user_id: user2.id }, ['id'])
+    .then((accRes) => request(app).put(`${MAIN_ROUTE}/${accRes[0].id}`)
+      .send({ name: 'Sanji Vinsmoke' })
+      .set('authorization', `bearer ${user.token}`)
+      .then((res) => {
+        expect(res.status).toBe(403);
+        expect(res.body.error).toBe('Este recurso não pertence a este usuario');
+      })
+    );
 });
 
 test('Deve remover uma conta por id', async () => {
@@ -124,5 +133,12 @@ test('Deve remover uma conta por id', async () => {
 });
 
 test('Não deve remover uma conta de outro usuario', () => {
-
+  return app.db('accounts').insert({ name: 'Zoro Roronoa', user_id: user2.id }, ['id'])
+    .then((accRes) => request(app).delete(`${MAIN_ROUTE}/${accRes[0].id}`)
+      .set('authorization', `bearer ${user.token}`)
+      .then((res) => {
+        expect(res.status).toBe(403);
+        expect(res.body.error).toBe('Este recurso não pertence a este usuario');
+      })
+    );
 });
