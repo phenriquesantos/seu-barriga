@@ -12,7 +12,7 @@ module.exports = (app) => {
   }
 
   const find = (filters = {}) => {
-    return app.db('accounts').where(filters).select();
+    return app.db('accounts').where(filters).first();
 
   }
 

@@ -23,7 +23,7 @@ module.exports = (app) => {
     const id = req.params.id;
     app.services.account.find({ id })
       .then((result) => {
-        return res.status(200).json(result[0]);
+        return res.status(200).json(result);
       }).catch(error => next(error))
   });
 
