@@ -2,7 +2,6 @@ const express = require('express');
 
 module.exports = (app) => {
   const protectedRouter = express.Router();
-
   protectedRouter.use('/users', app.routes.users);
   protectedRouter.use('/accounts', app.routes.accounts);
 

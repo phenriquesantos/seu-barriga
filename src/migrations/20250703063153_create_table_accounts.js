@@ -10,7 +10,6 @@ exports.up = (knex) => {
       .references('id')
       .inTable('users')
       .notNullable();
-
   });
 };
 
