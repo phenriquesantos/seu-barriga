@@ -8,7 +8,6 @@ module.exports = (app) => {
 
   const find = (filters = {}) => {
     return app.db('accounts').where(filters).first();
-
   }
 
   const create = async (account) => {

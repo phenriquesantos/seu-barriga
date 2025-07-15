@@ -86,8 +86,14 @@ test('Deve retornar uma conta por id', async () => {
     });
 });
 
-test.skip('Não de retornar uma conta de outro usuario', () => {
-
+test('Não de retornar uma conta de outro usuario', () => {
+  return app.db('accounts').insert({ name: 'Jinbe', user_id: user2.id }, ['id'])
+    .then((accRes) => request(app).get(`${MAIN_ROUTE}/${accRes[0].id}`)
+      .set('authorization', `bearer ${user.token}`)
+      .then((res) => {
+        expect(res.status).toBe(403);
+        expect(res.body.error).toBe('Este recurso não pertence a este usuario');
+      }));
 });
 
 test('Deve atualizar uma conta por id', async () => {
