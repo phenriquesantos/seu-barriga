@@ -1,4 +1,5 @@
 const express = require('express');
+const ForbidenError = require('../errors/ForbidenError');
 
 module.exports = (app) => {
 
@@ -9,7 +10,7 @@ module.exports = (app) => {
     return app.services.account.find({ id })
       .then((account) => {
         if (account && account.user_id != req.user.id)
-          res.status(403).json({ error: 'Este recurso não pertence a este usuario' });
+          throw new ForbidenError();
 
         next();
       });
@@ -17,37 +18,34 @@ module.exports = (app) => {
 
   router.post('/', (req, res, next) => {
     return app.services.account.create({ ...req.body, user_id: req.user.id })
-      .then((result) => {
-        return res.status(201).json(result[0]);
-      }).catch(error => next(error));
+      .then(result => res.status(201).json(result[0]))
+      .catch(error => next(error));
   });
 
 
   router.get('/', (req, res, next) => {
-    app.services.account.findAll(req.user.id)
-      .then((result) => {
-        return res.status(200).json(result);
-      }).catch(error => next(error))
+    return app.services.account.findAll(req.user.id)
+      .then((result) => res.status(200).json(result))
+      .catch(error => next(error))
   });
 
   router.get('/:id', (req, res, next) => {
     const id = req.params.id;
-    app.services.account.find({ id })
-      .then((result) => {
-        return res.status(200).json(result);
-      }).catch(error => next(error))
+    return app.services.account.find({ id })
+      .then((result) => res.status(200).json(result))
+      .catch(error => next(error))
   });
 
   router.put('/:id', (req, res, next) => {
     const { id } = req.params;
-    app.services.account.updateById(id, req.body)
+    return app.services.account.updateById(id, req.body)
       .then(result => res.status(200).json(result[0]))
       .catch(error => next(error));
   });
 
   router.delete('/:id', (req, res, next) => {
     const id = req.params.id;
-    app.services.account.remove(id)
+    return app.services.account.remove(id)
       .then(() => res.status(204).send())
       .catch(error => next(error));
   });
